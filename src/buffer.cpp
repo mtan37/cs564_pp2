@@ -60,8 +60,23 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 {
 }
 
-void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
-{
+void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
+    // allocate empty page in file
+    
+    Page pageContent = file->allocatePage();
+    page = &pageContent;
+    pageNo = page->page_number(); 
+    // allocate frame in buffer pool for page
+    FrameId frameId;
+    allocBuf(frameId);
+ 
+    if (frameId >= numBufs){
+        // error check onn framId value
+        // TODO: throw frame id out of bound exception
+    }
+    
+    hashTable->insert(file, pageNo, frameId);  
+    bufDescTable[frameId].Set(file, pageNo);
 }
 
 void BufMgr::flushFile(const File* file) 
