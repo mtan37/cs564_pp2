@@ -67,12 +67,14 @@ void BufMgr::allocBufRecurse(FrameId & frame, uint32_t & pinnedCount){
         // clear the ref bit and go to the next frame
         frameDesc.refbit = false;
         allocBufRecurse(frame, pinnedCount);
+        return;
     }
 
     if (frameDesc.pinCnt > 0){
         // if the page is pinned
         pinnedCount++;
         allocBufRecurse(frame, pinnedCount);
+        return;
     }
 
     // use this frame
@@ -83,7 +85,7 @@ void BufMgr::allocBufRecurse(FrameId & frame, uint32_t & pinnedCount){
     // remove entry from hash table
     hashTable->remove(oldFile, oldPageId);
     // reset the frame desciption
-    frameDesc.Set(oldFile, oldPageId);
+    frameDesc.Clear();
 }
 
 void BufMgr::allocBuf(FrameId & frame) {
@@ -117,6 +119,7 @@ void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
     
     hashTable->insert(file, pageNo, frameId);  
     bufDescTable[frameId].Set(file, pageNo);
+    bufPool[frameId] = pageContent;
 }
 
 void BufMgr::flushFile(const File* file) 
