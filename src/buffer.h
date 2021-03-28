@@ -190,6 +190,11 @@ class BufMgr
 	 */
   void advanceClock();
 
+    /**
+     * The recursive helper for the allocBuf method
+     */
+  void allocBufRecurse(FrameId & frame, uint32_t & pinnedCount);
+
 	/**
 	 * Allocate a free frame.  
 	 *

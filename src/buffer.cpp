@@ -46,8 +46,48 @@ void BufMgr::advanceClock()
 {
 }
 
-void BufMgr::allocBuf(FrameId & frame) 
-{
+void BufMgr::allocBufRecurse(FrameId & frame, uint32_t & pinnedCount){
+    
+    if (pinnedCount >= numBufs) {
+        // if all buffer frames are pinned - throw exception
+        throw BufferExceededException();
+    }
+    
+    // get the frame pointed by the clock handle
+    BufDesc frameDesc = bufDescTable[clockHand];
+    frame = clockHand; 
+
+    if (!frameDesc.valid) {
+        // if the frame is free - use the frame
+        return;
+    }
+
+    if (frameDesc.refbit) {
+        // if the ref bit of the frame is set
+        // clear the ref bit and go to the next frame
+        frameDesc.refbit = false;
+        allocBufRecurse(frame, pinnedCount);
+    }
+
+    if (frameDesc.pinCnt > 0){
+        // if the page is pinned
+        pinnedCount++;
+        allocBufRecurse(frame, pinnedCount);
+    }
+    // use this frame
+    File *oldFile = frameDesc.file;
+    PageId oldPageId = frameDesc.pageNo;
+    // flush the current page in the frame if needed
+    oldFile->writePage(bufPool[frame]); 
+    // remove entry from hash table
+    hashTable->remove(oldFile, oldPageId);
+    // reset the frame desciption
+    frameDesc.Set(oldFile, oldPageId);
+}
+
+void BufMgr::allocBuf(FrameId & frame) {
+    uint32_t pinnedCount = 0;
+    allocBufRecurse(frame, pinnedCount);
 }
 
 	
@@ -62,7 +102,6 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
     // allocate empty page in file
-    
     Page pageContent = file->allocatePage();
     page = &pageContent;
     pageNo = page->page_number(); 
