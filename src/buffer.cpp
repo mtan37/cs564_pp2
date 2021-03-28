@@ -40,7 +40,10 @@ BufMgr::BufMgr(std::uint32_t bufs)
 
 
 BufMgr::~BufMgr() {
-	//flush dirty pages
+	//[Flush dirty pages]
+	//flushFile();
+
+	//Deallocate arrays
 	delete[] bufPool;
 	delete[] bufDescTable;
 }
@@ -57,19 +60,31 @@ void BufMgr::allocBuf(FrameId & frame)
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
 	try {
-		//int frameNum = hashTable.lookup();
-		//page is in buffer pool
-		//set refbit
-		//increment page pinCnt
-		//return pointer to frame containing page via page parameter
+		FrameId frameNo = NULL;
+		FrameId &frameNoPtr = frameNo;
+		hashTable->lookup(file, pageNo, frameNo);
+
+		//Page is in buffer pool (Case 2)
+
+		BufDesc bufDesc = bufDescTable[frameNo];
+		bufDesc.refbit = true;
+		bufDesc.pinCnt++;
+		*page = file->readPage(bufDesc.pageNo);
 
 	} catch (HashNotFoundException& e) {
-		//page not in buffer pool
-		//allocBuff();
-		//file->readPage();
-		//insert into hashtable
-		//invoke Set()
-		//return pointed to frame containing page via page parameter
+
+		//Page not in buffer pool (Case 1)
+		
+		FrameId frameNo = NULL;
+		FrameId &frameNoPtr = frameNo;
+		allocBuf(frameNoPtr);
+
+		BufDesc bufDesc = bufDescTable[frameNo];
+		Page newPage = file->readPage(bufDesc.pageNo);
+		hashTable->insert(file, newPage.page_number(), frameNo);
+		bufDesc.Set(file, newPage.page_number());
+		*page = newPage;
+
 	}
 }
 
