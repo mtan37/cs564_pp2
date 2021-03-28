@@ -40,7 +40,9 @@ BufMgr::BufMgr(std::uint32_t bufs)
 
 
 BufMgr::~BufMgr() {
-	//implement
+	//flush dirty pages
+	delete[] bufPool;
+	delete[] bufDescTable;
 }
 
 void BufMgr::advanceClock()
@@ -54,7 +56,21 @@ void BufMgr::allocBuf(FrameId & frame)
 	
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
-	//implement
+	try {
+		//int frameNum = hashTable.lookup();
+		//page is in buffer pool
+		//set refbit
+		//increment page pinCnt
+		//return pointer to frame containing page via page parameter
+
+	} catch (HashNotFoundException& e) {
+		//page not in buffer pool
+		//allocBuff();
+		//file->readPage();
+		//insert into hashtable
+		//invoke Set()
+		//return pointed to frame containing page via page parameter
+	}
 }
 
 
