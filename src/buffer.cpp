@@ -40,6 +40,7 @@ BufMgr::BufMgr(std::uint32_t bufs)
 
 
 BufMgr::~BufMgr() {
+	//implement
 }
 
 void BufMgr::advanceClock()
@@ -53,6 +54,7 @@ void BufMgr::allocBuf(FrameId & frame)
 	
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
+	//implement
 }
 
 
