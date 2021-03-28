@@ -74,6 +74,7 @@ void BufMgr::allocBufRecurse(FrameId & frame, uint32_t & pinnedCount){
         pinnedCount++;
         allocBufRecurse(frame, pinnedCount);
     }
+
     // use this frame
     File *oldFile = frameDesc.file;
     PageId oldPageId = frameDesc.pageNo;
@@ -122,8 +123,22 @@ void BufMgr::flushFile(const File* file)
 {
 }
 
-void BufMgr::disposePage(File* file, const PageId PageNo)
-{
+void BufMgr::disposePage(File* file, const PageId PageNo){
+    FrameId frameNo = numBufs;
+
+    try {
+        hashTable->lookup(file, PageNo, frameNo);
+    } catch (HashNotFoundException &e){
+        // if the page does not have a frame allocated 
+        frameNo = -1;
+    }
+    
+    if (frameNo >= numBufs){
+        hashTable->remove(file, PageNo);
+        bufDescTable[frameNo].Clear();
+    }
+
+    file->deletePage(PageNo);
 }
 
 void BufMgr::printSelf(void) 
