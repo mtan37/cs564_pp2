@@ -69,7 +69,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
 	try {
 		//Check if page is in buffer pool
-		FrameId frameNo = -1;
+		FrameId frameNo = numBufs;
 		hashTable->lookup(file, pageNo, frameNo);
 
 		//Page is in buffer pool (Case 2)
@@ -87,7 +87,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 		//Page not in buffer pool (Case 1)
 		
 		//allocate buffer frame
-		FrameId frameNo = -1;
+		FrameId frameNo = numBufs;
 		FrameId &frameNoPtr = frameNo;
 		allocBuf(frameNoPtr);
 
