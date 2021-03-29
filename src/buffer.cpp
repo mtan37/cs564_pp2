@@ -79,9 +79,7 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
   else
   	// decrement frame pin count
 	bufDescTable[fid].pinCnt = bufDescTable[fid].pinCnt - 1;
-
 }
-
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
@@ -120,7 +118,6 @@ void BufMgr::flushFile(const File* file)
 		bufDescTable[i].Clear();
   	}
   }
-
 }
 
 void BufMgr::disposePage(File* file, const PageId PageNo)
