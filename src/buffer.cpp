@@ -44,10 +44,10 @@ BufMgr::~BufMgr() {
 
 void BufMgr::advanceClock()
 {
-  if (clockHead != bufs - 1)
-  	clockHead = clockHead + 1;
+  if (clockHand != numBufs - 1)
+  	clockHand = clockHand + 1;
   else 
-  	clockHead = 0;
+  	clockHand = 0;
 }
 
 void BufMgr::allocBuf(FrameId & frame) 
@@ -62,11 +62,11 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 
 void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty) 
 {
-  FrameId fid = -1;
+  FrameId fid = numBufs + 1;
   // check whether (file, pageNo) is in the buffer pool
   try 
   {
-  	hashTable->lookup(file, pageNo, &fid);
+  	hashTable->lookup(file, pageNo, fid);
   } catch (HashNotFoundException ex) {
   	return;
   }
@@ -91,7 +91,7 @@ void BufMgr::flushFile(const File* file)
 {
   PageId pid = Page::INVALID_NUMBER;
   // scan buffer pool for pages belong to file
-  for (FrameId i = 0; i < bufs; i++)
+  for (std::uint32_t i = 0; i < numBufs; i++)
   {
 	if (bufDescTable[i].file->filename() == file->filename()) 
   	{
@@ -100,7 +100,7 @@ void BufMgr::flushFile(const File* file)
 			throw BadBufferException(i, bufDescTable[i].dirty, false, bufDescTable[i].refbit);
 
 		// otherwise valid page
-  		pid = bufDescTable[i].pageId;
+  		pid = bufDescTable[i].pageNo;
 
 		// check whether page is unpinned so as to be ready to be flushed
 		if (bufDescTable[i].pinCnt != 0)
@@ -109,7 +109,7 @@ void BufMgr::flushFile(const File* file)
 		// write page if dirty
   		if (bufDescTable[i].dirty == true)
   		{
-  			file->writePage(bufPool[i]);
+  			bufDescTable[i].file->writePage(bufPool[i]);
   			bufDescTable[i].dirty = false;
   		}
   		
