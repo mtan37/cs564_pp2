@@ -93,6 +93,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 		Page newPage = file->readPage(bufDesc.pageNo);
 		//insert page into hashtable
 		hashTable->insert(file, newPage.page_number(), frameNo);
+		bufPool[frameNo] = newPage;
 		//Set() frame
 		bufDesc.Set(file, newPage.page_number());
 		//return pointer to frame containing page
