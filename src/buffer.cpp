@@ -60,31 +60,40 @@ void BufMgr::allocBuf(FrameId & frame)
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
 	try {
+		//Check if page is in buffer pool
 		FrameId frameNo = NULL;
 		FrameId &frameNoPtr = frameNo;
 		hashTable->lookup(file, pageNo, frameNo);
 
 		//Page is in buffer pool (Case 2)
 
+		//get frame
 		BufDesc bufDesc = bufDescTable[frameNo];
+		//set refbit
 		bufDesc.refbit = true;
+		//increment pinCnt
 		bufDesc.pinCnt++;
+		//return pointer to frame containing page
 		*page = file->readPage(bufDesc.pageNo);
 
 	} catch (HashNotFoundException& e) {
-
 		//Page not in buffer pool (Case 1)
 		
+		//allocate buffer frame
 		FrameId frameNo = NULL;
 		FrameId &frameNoPtr = frameNo;
 		allocBuf(frameNoPtr);
 
+		//get frame
 		BufDesc bufDesc = bufDescTable[frameNo];
+		//read page from disk into buffer pool frame
 		Page newPage = file->readPage(bufDesc.pageNo);
+		//insert page into hashtable
 		hashTable->insert(file, newPage.page_number(), frameNo);
+		//Set() frame
 		bufDesc.Set(file, newPage.page_number());
+		//return pointer to frame containing page
 		*page = newPage;
-
 	}
 }
 
