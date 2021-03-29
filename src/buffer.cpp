@@ -70,6 +70,7 @@ void BufMgr::allocBufRecurse(FrameId & frame, uint32_t & pinnedCount){
     // get the frame pointed by the clock handle
     BufDesc frameDesc = bufDescTable[clockHand];
     frame = clockHand; 
+    advanceClock();
 
     if (!frameDesc.valid) {
         // if the frame is free - use the frame
