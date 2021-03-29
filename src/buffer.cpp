@@ -41,7 +41,11 @@ BufMgr::BufMgr(std::uint32_t bufs)
 
 BufMgr::~BufMgr() {
 	//[Flush dirty pages]
-	//flushFile();
+	for (int i = 0; i < numBufs; i++) {
+		if (bufDescTable[i].dirty) {
+			flushFile(bufDescTable[i].file);
+		}
+	}
 
 	//Deallocate arrays
 	delete[] bufPool;
