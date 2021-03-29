@@ -60,8 +60,52 @@ void BufMgr::advanceClock()
   	clockHand = 0;
 }
 
-void BufMgr::allocBuf(FrameId & frame) 
-{
+void BufMgr::allocBufRecurse(FrameId & frame, uint32_t & pinnedCount){
+    
+    if (pinnedCount >= numBufs) {
+        // if all buffer frames are pinned - throw exception
+        throw BufferExceededException();
+    }
+    
+    // get the frame pointed by the clock handle
+    BufDesc frameDesc = bufDescTable[clockHand];
+    frame = clockHand; 
+    advanceClock();
+
+    if (!frameDesc.valid) {
+        // if the frame is free - use the frame
+        return;
+    }
+
+    if (frameDesc.refbit) {
+        // if the ref bit of the frame is set
+        // clear the ref bit and go to the next frame
+        frameDesc.refbit = false;
+        allocBufRecurse(frame, pinnedCount);
+        return;
+    }
+
+    if (frameDesc.pinCnt > 0){
+        // if the page is pinned
+        pinnedCount++;
+        allocBufRecurse(frame, pinnedCount);
+        return;
+    }
+
+    // use this frame
+    File *oldFile = frameDesc.file;
+    PageId oldPageId = frameDesc.pageNo;
+    // flush the current page in the frame if needed
+    oldFile->writePage(bufPool[frame]); 
+    // remove entry from hash table
+    hashTable->remove(oldFile, oldPageId);
+    // reset the frame desciption
+    frameDesc.Clear();
+}
+
+void BufMgr::allocBuf(FrameId & frame) {
+    uint32_t pinnedCount = 0;
+    allocBufRecurse(frame, pinnedCount);
 }
 
 	
@@ -126,8 +170,23 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 	bufDescTable[fid].pinCnt = bufDescTable[fid].pinCnt - 1;
 }
 
-void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
-{
+void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
+    // allocate empty page in file
+    Page pageContent = file->allocatePage();
+    page = &pageContent;
+    pageNo = page->page_number(); 
+    // allocate frame in buffer pool for page
+    FrameId frameId = numBufs;
+    allocBuf(frameId);
+ 
+    if (frameId >= numBufs){
+        // error check on framId value
+        // TODO: throw frame id out of bound exception
+    }
+    
+    hashTable->insert(file, pageNo, frameId);  
+    bufDescTable[frameId].Set(file, pageNo);
+    bufPool[frameId] = pageContent;
 }
 
 void BufMgr::flushFile(const File* file) 
@@ -165,8 +224,22 @@ void BufMgr::flushFile(const File* file)
   }
 }
 
-void BufMgr::disposePage(File* file, const PageId PageNo)
-{
+void BufMgr::disposePage(File* file, const PageId PageNo){
+    FrameId frameNo = numBufs;
+
+    try {
+        hashTable->lookup(file, PageNo, frameNo);
+    } catch (HashNotFoundException &e){
+        // if the page does not have a frame allocated 
+        frameNo = numBufs;
+    }
+    
+    if (frameNo < numBufs){
+        hashTable->remove(file, PageNo);
+        bufDescTable[frameNo].Clear();
+    }
+
+    file->deletePage(PageNo);
 }
 
 void BufMgr::printSelf(void) 
