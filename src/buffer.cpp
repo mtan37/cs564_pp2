@@ -41,7 +41,7 @@ BufMgr::BufMgr(std::uint32_t bufs)
 
 BufMgr::~BufMgr() {
 	//[Flush dirty pages]
-	for (int i = 0; i < numBufs; i++) {
+	for (std::uint32_t i = 0; i < numBufs; i++) {
 		if (bufDescTable[i].dirty) {
 			flushFile(bufDescTable[i].file);
 		}
