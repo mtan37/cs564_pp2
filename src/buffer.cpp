@@ -88,8 +88,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 		
 		//allocate buffer frame
 		FrameId frameNo = numBufs;
-		FrameId &frameNoPtr = frameNo;
-		allocBuf(frameNoPtr);
+		allocBuf(frameNo);
 
 		//get frame
 		BufDesc bufDesc = bufDescTable[frameNo];
