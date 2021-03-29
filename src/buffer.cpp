@@ -132,11 +132,11 @@ void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
     page = &pageContent;
     pageNo = page->page_number(); 
     // allocate frame in buffer pool for page
-    FrameId frameId;
+    FrameId frameId = numBufs;
     allocBuf(frameId);
  
     if (frameId >= numBufs){
-        // error check onn framId value
+        // error check on framId value
         // TODO: throw frame id out of bound exception
     }
     
@@ -188,10 +188,10 @@ void BufMgr::disposePage(File* file, const PageId PageNo){
         hashTable->lookup(file, PageNo, frameNo);
     } catch (HashNotFoundException &e){
         // if the page does not have a frame allocated 
-        frameNo = -1;
+        frameNo = numBufs;
     }
     
-    if (frameNo >= numBufs){
+    if (frameNo < numBufs){
         hashTable->remove(file, PageNo);
         bufDescTable[frameNo].Clear();
     }
