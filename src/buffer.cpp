@@ -67,7 +67,7 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
   try 
   {
   	hashTable->lookup(file, pageNo, fid);
-  } catch (HashNotFoundException ex) {
+  } catch (HashNotFoundException &ex) {
   	return;
   }
 
