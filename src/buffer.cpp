@@ -157,6 +157,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
         bufDesc->Set(file, bufPool[frameNo].page_number());
         // return pointer to frame containing page
         page = &(bufPool[frameNo]);
+        return;
 }
 
 
@@ -238,21 +239,25 @@ void BufMgr::flushFile(const File* file) {
 }
 
 void BufMgr::disposePage(File* file, const PageId PageNo){
-    FrameId frameNo = numBufs;
-
-    try {
-        hashTable->lookup(file, PageNo, frameNo);
-    } catch (HashNotFoundException &e){
-        // if the page does not have a frame allocated 
-        frameNo = numBufs;
-    }
     
-    if (frameNo < numBufs){
-        hashTable->remove(file, PageNo);
-        bufDescTable[frameNo].Clear();
-    }
+    //only proceed if valid file is provided
+    if (file != NULL) {
+        FrameId frameNo = numBufs;
 
-    file->deletePage(PageNo);
+        try {
+            hashTable->lookup(file, PageNo, frameNo);
+        } catch (HashNotFoundException &e){
+            // if the page does not have a frame allocated 
+            frameNo = numBufs;
+        }
+        
+        if (frameNo < numBufs){
+            hashTable->remove(file, PageNo);
+            bufDescTable[frameNo].Clear();
+        }
+
+        file->deletePage(PageNo);
+    }
 }
 
 void BufMgr::printSelf(void) 
