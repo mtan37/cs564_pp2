@@ -50,6 +50,9 @@ BufMgr::~BufMgr() {
     //Deallocate arrays
     delete[] bufPool;
     delete[] bufDescTable;
+
+    //Deallocate hash table
+    delete hashTable;
 }
 
 void BufMgr::advanceClock()
