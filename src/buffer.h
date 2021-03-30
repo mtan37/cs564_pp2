@@ -246,6 +246,15 @@ class BufMgr
   void allocPage(File* file, PageId &PageNo, Page*& page); 
 
 	/**
+	 * Check whether the file is open. If file open, then write the page into the buffer pool.
+	 * 
+	 * @param file   	File object
+	 * @param page  	Reference to page, which will be written to buffer pool.
+	 */
+  void writeDirtyPage(File* file, const Page& page);
+
+
+	/**
 	 * Writes out all dirty pages of the file to disk.
 	 * All the frames assigned to the file need to be unpinned from buffer pool before this function can be successfully called.
 	 * Otherwise Error returned.
