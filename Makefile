@@ -2,7 +2,7 @@
 #               CMake Project Wrapper Makefile               #
 ############################################################## 
 CC = g++
-CFLAGS = -std=c++11 -Wall
+CFLAGS = -g -std=c++11 -Wall
 
 RHEL_VER := $(shell uname -r | grep -o -E '(el5|el6)')
 ifeq ($(RHEL_VER), el5)
