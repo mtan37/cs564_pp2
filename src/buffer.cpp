@@ -100,7 +100,8 @@ void BufMgr::allocBuf(FrameId & frame) {
                 
                 // flush the current page in the frame if needed
                 if (frameDesc->dirty){
-                    oldFile->writePage(bufPool[clockHand]); 
+                    oldFile->writePage(bufPool[clockHand]);
+                    bufStats.diskwrites++;
                 }
                 
                 // remove entry from hash table
@@ -118,6 +119,8 @@ void BufMgr::allocBuf(FrameId & frame) {
 
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
+    bufStats.diskreads++;
+    bufStats.accesses++;
     try {
         // Check if page is in buffer pool
         FrameId frameNo = numBufs;
@@ -180,6 +183,7 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 }
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
+    bufStats.diskreads++;
     // allocate empty page in file
     Page pageContent = file->allocatePage();
     pageNo = pageContent.page_number(); 
@@ -215,6 +219,7 @@ void BufMgr::flushFile(const File* file) {
             // write page if dirty
             if (bufDescTable[i].dirty == true){
                 bufDescTable[i].file->writePage(bufPool[i]);
+                bufStats.diskwrites++;
                 bufDescTable[i].dirty = false;
             }
             
