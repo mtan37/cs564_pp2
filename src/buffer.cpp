@@ -61,7 +61,6 @@ void BufMgr::advanceClock()
 }
 
 void BufMgr::allocBuf(FrameId & frame) {
-    bufStats.diskreads++;
     uint32_t pinnedCount = 0;
     // allocBufRecurse(frame, pinnedCount);
     while(true){
