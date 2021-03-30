@@ -335,6 +335,7 @@ void test7()
 	bufMgr->allocPage(file4ptr, i, page);
 	bufMgr->allocPage(file4ptr, i, page);
 	bufMgr->unPinPage(file4ptr, i, true);
+	bufMgr->unPinPage(file4ptr, i-1, true);
 	try
 	{
 		bufMgr->unPinPage(file4ptr, i, false);
