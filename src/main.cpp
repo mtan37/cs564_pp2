@@ -36,6 +36,7 @@ void test3();
 void test4();
 void test5();
 void test6();
+void test7();
 void testBufMgr();
 
 int main() 
@@ -148,6 +149,8 @@ void testBufMgr()
 	test4();
 	test5();
 	test6();
+	test7();
+
 
 	//Close files before deleting them
 	file1.~File();
@@ -156,12 +159,14 @@ void testBufMgr()
 	file4.~File();
 	file5.~File();
 
+
 	//Delete files
 	File::remove(filename1);
 	File::remove(filename2);
 	File::remove(filename3);
 	File::remove(filename4);
 	File::remove(filename5);
+
 
 	delete bufMgr;
 
@@ -206,6 +211,7 @@ void test2()
 
 		long int index = rand() % num;
     pageno1 = pid[index];
+
 		bufMgr->readPage(file1ptr, pageno1, page);
 		sprintf((char*)tmpbuf, "test.1 Page %u %7.1f", pageno1, (float)pageno1);
 		if(strncmp(page->getRecord(rid[index]).c_str(), tmpbuf, strlen(tmpbuf)) != 0)
@@ -321,3 +327,26 @@ void test6()
 
 	bufMgr->flushFile(file1ptr);
 }
+
+void test7()
+{
+	bufMgr->allocPage(file4ptr, i, page);
+	bufMgr->allocPage(file4ptr, i, page);
+	bufMgr->unPinPage(file4ptr, i, true);
+	bufMgr->unPinPage(file4ptr, i-1, true);
+	try
+	{
+		bufMgr->unPinPage(file4ptr, i, false);
+		PRINT_ERROR("ERROR :: Page is already unpinned. Exception should have been thrown before execution reaches this point.");
+	}
+	catch(const PageNotPinnedException &e)
+	{
+	}
+
+	std::cout << "Test 7 passed" << "\n";
+}
+
+
+// page being invalid and flush
+// tests on clock algorithm
+

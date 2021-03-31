@@ -103,8 +103,7 @@ void BufMgr::allocBuf(FrameId & frame) {
                 
                 // flush the current page in the frame if needed
                 if (frameDesc->dirty){
-                    oldFile->writePage(bufPool[clockHand]);
-                    bufStats.diskwrites++;
+                    writeDirtyPage(oldFile, bufPool[clockHand]);
                 }
                 
                 // remove entry from hash table
@@ -202,13 +201,22 @@ void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) {
     page = &bufPool[frameId];
 }
 
+void BufMgr::writeDirtyPage(File* file, const Page& page) {
+    if (file != NULL && file->isOpen(file->filename())) { 
+    	file->writePage(page);
+	bufStats.diskwrites++;
+    } else {
+    	// error handling
+    }
+}
+
 void BufMgr::flushFile(const File* file) {
     PageId pid = Page::INVALID_NUMBER;
 
     // scan buffer pool for pages belong to file
     for (std::uint32_t i = 0; i < numBufs; i++) {
 
-        if (bufDescTable[i].file->filename() == file->filename()) {
+        if (bufDescTable[i].file != NULL && bufDescTable[i].file->filename() == file->filename()) {
             // invalid page
             if (bufDescTable[i].valid == false)
                 throw BadBufferException(i, bufDescTable[i].dirty, false, bufDescTable[i].refbit);
@@ -222,8 +230,7 @@ void BufMgr::flushFile(const File* file) {
 
             // write page if dirty
             if (bufDescTable[i].dirty == true){
-                bufDescTable[i].file->writePage(bufPool[i]);
-                bufStats.diskwrites++;
+		            writeDirtyPage(bufDescTable[i].file, bufPool[i]);
                 bufDescTable[i].dirty = false;
             }
             
